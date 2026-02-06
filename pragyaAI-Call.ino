@@ -103,6 +103,8 @@ String fetchResult(const String &taskId) {
 String recordSpeech() {
   Serial.println("🎙️ [fake STT] Recording...");
   delay(1500);
+
+  // Raw health data
   String heartRate = R"([
   {"time":"06:00", "hr":48, "bp":"108/64"},
   {"time":"06:15", "hr":50, "bp":"110/66"},
@@ -116,8 +118,20 @@ String recordSpeech() {
   {"time":"08:15", "hr":65, "bp":"118/68"},
   {"time":"08:30", "hr":58, "bp":"112/66"},
   {"time":"09:00", "hr":52, "bp":"108/64"}
-])";
-  return "This is my personal health data, analyze it and give me a review based on the format, with no text and only this json format- {Criticality: x/100, Diet: good/bad, Improvement: (upto 5 words)}... Heres the heart info: " + heartRate;
+  ])";
+
+  // ENGINEERING THE PROMPT:
+  // 1. We ask for "Raw JSON" to avoid conversation.
+  // 2. We explicitly say "No Markdown" to prevent the response from including ```json
+  // 3. We define the specific keys required.
+  String prompt = "Analyze this health data. "
+                  "Return ONLY a raw JSON object. "
+                  "Do not use Markdown formatting or code blocks. "
+                  "Do not include any intro text. "
+                  "Required JSON format: {\"Criticality\": \"number/100\", \"Diet\": \"Good/Bad\", \"Improvement\": \"advice under 5 words\"}. "
+                  "Data: " + heartRate;
+
+  return prompt;
 }
 
 void speakText(const String &txt) {
